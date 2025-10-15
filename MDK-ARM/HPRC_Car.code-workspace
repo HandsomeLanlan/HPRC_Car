@@ -1,0 +1,13 @@
+{
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "name": "HPRC_Car",
+            "path": ".."
+        }
+    ],
+    "settings": {},
+    "extensions": {}
+}
