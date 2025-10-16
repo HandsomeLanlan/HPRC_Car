@@ -29,6 +29,8 @@
 #include "HAL_USART.h"
 #include "mpu6050.h"
 #include "inv_mpu.h"
+#include "HRSR04.h"
+#include "control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,8 +56,9 @@ extern usart_protocol_t usart_protocol;
 uint8_t data[] = "HelloWorld";
 uint8_t length = 10;
 
+// extern volatile uint8_t mpu6050_data_ready;
 /* 获取MPU6050数据 */
-float pitch, roll, yaw;
+// float pitch, roll, yaw;
 
 /* USER CODE END PV */
 
@@ -102,6 +105,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -109,33 +113,33 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   OLED_Init();
-  MPU_Init();
-  mpu_dmp_init();
-
-  // 启动PWM
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
-
-  // 设置PWM占空比和高低电平(AS4950)
-  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 3600); //PA7
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_RESET);
-
-  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, 1800); //PA2
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
+  Control_Init();
+  // MPU_Init();
+  // mpu_dmp_init();
   
+  // 启动超声波模块的定时器
+  HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
 
   // 初始化串口协议
   HAL_USART_Init(&usart_protocol, &huart3);
   // 设置数据接收回调函数
   usart_protocol_set_callback(&usart_protocol,my_data_received_callback);
-
-  OLED_ShowString(1, 1, "pitch:");
-  OLED_ShowString(2, 1, "roll:");
-  OLED_ShowString(3, 1, "yaw:");
+  
+  // OLED_ShowString(1, 1, "pitch:");
+  // OLED_ShowString(2, 1, "roll:");
+  // OLED_ShowString(3, 1, "yaw:");
+  OLED_ShowString(4,1,"Distance:");
   //usart_protocol_send_data(&usart_protocol, data, length);
+
+  SetSpeed_Left(7200);
+  SetSpeed_Right(3600);
   while (1)
   {
-    
+    /* -----------------超声波测试代码------------------ */
+    uint32_t dis = Ultrasonic_GetDistance();
+    OLED_ShowNum(4, 10, dis, 3);
+    /* --------------------------------------------------- */
+
     /* --------------串口接收数据测试代码------------------- */
     // OLED_ShowNum(1, 1, usart_protocol.rx_buffer[0], 2);
     // OLED_ShowNum(1, 3, usart_protocol.rx_buffer[1], 2);
@@ -146,11 +150,14 @@ int main(void)
     /* --------------------------------------------------- */
 
     /* --------------MPU6050数据获取测试代码---------------- */
-    mpu_dmp_get_data(&pitch, &roll, &yaw);
+    // if (mpu6050_data_ready) {
+    //   mpu_dmp_get_data(&pitch, &roll, &yaw);
+    //   mpu6050_data_ready = 0;
+    // }
 
-    OLED_ShowFloat(1, 7, pitch, 3, 1);
-    OLED_ShowFloat(2, 7, roll, 3, 1);
-    OLED_ShowFloat(3, 7, yaw, 3, 1);
+    // OLED_ShowFloat(1, 7, pitch, 3, 1);
+    // OLED_ShowFloat(2, 7, roll, 3, 1);
+    // OLED_ShowFloat(3, 7, yaw, 3, 1);
     /* ---------------------------------------------------- */
 
     /* USER CODE END WHILE */

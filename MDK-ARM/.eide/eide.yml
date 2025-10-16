@@ -97,14 +97,10 @@ targets:
             warnings: all-warnings
           global:
             output-debug-info: enable
-            use-microLIB: false
           linker:
             $outputTaskExcludes:
               - .bin
             output-format: elf
-            ro-base: ""
-            rw-base: ""
-            xo-base: ""
         scatterFilePath: ""
         storageLayout:
           RAM:
