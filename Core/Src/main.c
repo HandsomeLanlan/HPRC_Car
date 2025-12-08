@@ -28,8 +28,6 @@
 /* USER CODE BEGIN Includes */
 #include "HAL_OLED.h"
 #include "HAL_USART.h"
-#include "mpu6050.h"
-#include "inv_mpu.h"
 #include "HRSR04.h"
 #include "control.h"
 #include "badc.h"
