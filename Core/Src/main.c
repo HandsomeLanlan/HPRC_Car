@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -31,6 +32,7 @@
 #include "inv_mpu.h"
 #include "HRSR04.h"
 #include "control.h"
+#include "badc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,10 +57,6 @@ extern usart_protocol_t usart_protocol;
 /* 发送串口数据 */
 uint8_t data[] = "HelloWorld";
 uint8_t length = 10;
-
-// extern volatile uint8_t mpu6050_data_ready;
-/* 获取MPU6050数据 */
-// float pitch, roll, yaw;
 
 /* USER CODE END PV */
 
@@ -103,9 +101,9 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART3_UART_Init();
-  MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM1_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -114,25 +112,28 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   OLED_Init();
   Control_Init();
-  // MPU_Init();
-  // mpu_dmp_init();
   
   // 启动超声波模块的定时器
   HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
 
   // 初始化串口协议
-  HAL_USART_Init(&usart_protocol, &huart3);
+  //HAL_USART_Init(&usart_protocol, &huart3);
   // 设置数据接收回调函数
-  usart_protocol_set_callback(&usart_protocol,my_data_received_callback);
+  //usart_protocol_set_callback(&usart_protocol,my_data_received_callback);
   
-  // OLED_ShowString(1, 1, "pitch:");
-  // OLED_ShowString(2, 1, "roll:");
-  // OLED_ShowString(3, 1, "yaw:");
   OLED_ShowString(4,1,"Distance:");
   //usart_protocol_send_data(&usart_protocol, data, length);
 
-  SetSpeed_Left(7200);
-  SetSpeed_Right(3600);
+  //SetSpeed_Left(6000);
+  //SetSpeed_Right(3500);
+  
+  HAL_Delay(2000);
+
+  SetSpeed_Left(2000);
+
+  //HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
+  //获得电机转速
+  
   while (1)
   {
     /* -----------------超声波测试代码------------------ */
@@ -175,6 +176,7 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -201,6 +203,12 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }

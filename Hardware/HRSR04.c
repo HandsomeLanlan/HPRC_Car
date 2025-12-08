@@ -17,10 +17,10 @@ void Delay_us(uint32_t xus)
 void Ultrasonic_Trigger(void)
 {
     capture_done = 0;
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
+    HRSR04_W_TR(1);
     //HAL_Delay(15);ms
     Delay_us(15);
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
+    HRSR04_W_TR(0);
 }
 
 /* 距离计算函数 */

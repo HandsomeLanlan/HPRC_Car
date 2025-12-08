@@ -1,10 +1,6 @@
 #include "gpio.h"
+#include "HAL_OLED.h"
 #include "HAL_OLED_Font.h"
-
-/*引脚配置*/
-
-#define OLED_W_SCL(x)		HAL_GPIO_WritePin(GPIOB,GPIO_PIN_8,(GPIO_PinState)(x))
-#define OLED_W_SDA(x)		HAL_GPIO_WritePin(GPIOB,GPIO_PIN_9,(GPIO_PinState)(x))
 
 /*引脚初始化*/
 void OLED_I2C_Init(void)
