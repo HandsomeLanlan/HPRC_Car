@@ -103,11 +103,6 @@ int main(void)
   MX_TIM1_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
   OLED_Init();
   Control_Init();
   
@@ -115,22 +110,20 @@ int main(void)
   HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
 
   // 初始化串口协议
-  //HAL_USART_Init(&usart_protocol, &huart3);
+  HAL_USART_Init(&usart_protocol, &huart3);
   // 设置数据接收回调函数
-  //usart_protocol_set_callback(&usart_protocol,my_data_received_callback);
-  
-  OLED_ShowString(4,1,"Distance:");
-  //usart_protocol_send_data(&usart_protocol, data, length);
+  usart_protocol_set_callback(&usart_protocol,my_data_received_callback);
+  /* USER CODE END 2 */
 
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  /* 串口数据发送测试代码 */
+  usart_protocol_send_data(&usart_protocol, data, length);
+
+  OLED_ShowString(4,1,"Distance:");
   //SetSpeed_Left(6000);
   //SetSpeed_Right(3500);
-  
-  HAL_Delay(2000);
-
-  SetSpeed_Left(2000);
-
   //HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
-  //获得电机转速
   
   while (1)
   {
@@ -147,18 +140,6 @@ int main(void)
     // OLED_ShowNum(1, 12, usart_protocol.rx_buffer[4], 2);
     // OLED_ShowNum(1, 14, usart_protocol.rx_buffer[5], 2);
     /* --------------------------------------------------- */
-
-    /* --------------MPU6050数据获取测试代码---------------- */
-    // if (mpu6050_data_ready) {
-    //   mpu_dmp_get_data(&pitch, &roll, &yaw);
-    //   mpu6050_data_ready = 0;
-    // }
-
-    // OLED_ShowFloat(1, 7, pitch, 3, 1);
-    // OLED_ShowFloat(2, 7, roll, 3, 1);
-    // OLED_ShowFloat(3, 7, yaw, 3, 1);
-    /* ---------------------------------------------------- */
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
