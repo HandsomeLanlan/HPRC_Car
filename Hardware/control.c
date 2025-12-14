@@ -3,6 +3,7 @@
 #include "gpio.h"
 #include "pid.h"
 #include "HAL_OLED.h"
+#include "HRSR04.h"
 
 #define min_left_speed 3500		//左电机小于3500不转
 #define min_right_speed 3500	//右电机小于3500不转
