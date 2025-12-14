@@ -32,6 +32,7 @@
 #include "control.h"
 #include "badc.h"
 #include "encoder.h"
+#include "control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,6 +57,10 @@ extern usart_protocol_t usart_protocol;
 /* 发送串口数据 */
 uint8_t data[] = "HelloWorld";
 uint8_t length = 10;
+
+int left_speed;
+int right_speed;
+uint32_t distance;
 
 /* USER CODE END PV */
 
@@ -130,23 +135,26 @@ int main(void)
   OLED_ShowString(1,1,"speedL:");
   OLED_ShowString(2,1,"speedR:");
   OLED_ShowString(3,1,"Distance:");
-  SetSpeed_Left(3500);
-  SetSpeed_Right(-3500);
+  // SetSpeed_Left(3500);
+  // SetSpeed_Right(-3500);
   
   int left_speed  = 0;
   int right_speed = 0;
+  uint32_t distance;
   
   while (1)
   {
-    left_speed  = get_left_encoder_speed();
-    right_speed = get_right_encoder_speed();
-    OLED_ShowSignedNum(1, 8, left_speed, 4);
-    OLED_ShowSignedNum(2, 8, right_speed, 4);
-    HAL_Delay(200);
-    /* -----------------超声波测试代码------------------ */
-    // uint32_t dis = Ultrasonic_GetDistance();
-    // OLED_ShowNum(4, 10, dis, 3);
-    /* --------------------------------------------------- */
+    // left_speed  = get_left_encoder_speed();
+    // right_speed = get_right_encoder_speed();
+    // OLED_ShowSignedNum(1, 8, left_speed, 4);
+    // OLED_ShowSignedNum(2, 8, right_speed, 4);
+
+    // distance = Ultrasonic_GetDistance();
+    // OLED_ShowNum(3, 10, distance, 3);
+
+    run();
+
+    //HAL_Delay(200);
 
     /* --------------串口接收数据测试代码------------------- */
     // OLED_ShowNum(1, 1, usart_protocol.rx_buffer[0], 2);

@@ -2,6 +2,8 @@
 #define __PID_H
 
 #include "main.h"
-#include "encoder.h"
+
+int direction_control_pid(int target_position);
+int speed_control_pid(int target_speed);
 
 #endif

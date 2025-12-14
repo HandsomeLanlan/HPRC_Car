@@ -55,14 +55,14 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, MPU6050_SDA_Pin|MPU6050_SCL_Pin|OLED_SCL_Pin|OLED_SDA_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : AJ1_Pin track4_Pin track5_Pin track6_Pin */
-  GPIO_InitStruct.Pin = AJ1_Pin|track4_Pin|track5_Pin|track6_Pin;
+  /*Configure GPIO pins : AJ1_Pin track3_Pin track2_Pin track1_Pin */
+  GPIO_InitStruct.Pin = AJ1_Pin|track3_Pin|track2_Pin|track1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : track1_Pin track2_Pin track3_Pin */
-  GPIO_InitStruct.Pin = track1_Pin|track2_Pin|track3_Pin;
+  /*Configure GPIO pins : track6_Pin track5_Pin track4_Pin */
+  GPIO_InitStruct.Pin = track6_Pin|track5_Pin|track4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);

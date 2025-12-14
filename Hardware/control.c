@@ -1,10 +1,25 @@
 #include "control.h"
 #include "tim.h"
 #include "gpio.h"
+#include "pid.h"
+#include "HAL_OLED.h"
 
 #define min_left_speed 3500		//左电机小于3500不转
 #define min_right_speed 3500	//右电机小于3500不转
 
+int track1, track2, track3, track4, track5, track6;	//红外传感器(从左往右)
+
+/* 红外循迹从左往右 */
+void get_track_status(void) {
+	track1 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12);
+	track2 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11);
+	track3 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8);
+	track4 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15);
+	track5 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_14);
+	track6 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_13);
+}
+
+/* PWM通道初始化 */
 void Control_Init(void) {	
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
@@ -47,3 +62,81 @@ void SetSpeed_Right(int speed) {
 		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, speed);	//PB1
 	}
 }
+
+/* 避障 */
+void obstacle_avoidance(void) {
+	/* 获取距离 */
+    uint32_t distance = Ultrasonic_GetDistance();
+}
+
+/* 整体的逻辑代码 */
+#if 0
+void run(void) {
+    uint8_t tracks = (track1 << 5) | (track2 << 4) | (track3 << 3) | 
+                          (track4 << 2) | (track5 << 1) | track6;
+    
+    /* [6个传感器的状态]{左电机速度的增量,右电机速度的增量} */
+    static const int speed_adjust[64][2] = {
+        // 只列出常见的几种情况，其余可根据实际需求补充
+        [0]  = {0, 0},      // 111111
+        [7]  = {0, 0},      // 000111 - 直行
+        [14] = {-500, 500}, // 001110 - 微微右偏，需要向左调整
+        [28] = {500, -500}, // 011100 - 微微左偏，需要向右调整
+        [24] = {1000, -1000}, // 011000 - 左偏较多，需要右转
+        [63] = {0, 0}       // 111111 - 全部在线上(十字路口或终点)
+    };
+    
+    // 基础速度
+    int base_speed = 5000;
+    
+    // 根据传感器状态获取速度调整值
+    int left_speed = base_speed + speed_adjust[tracks][0];
+    int right_speed = base_speed + speed_adjust[tracks][1];
+    
+    if (tracks == 63) {  // 111111
+        left_speed = 0;
+        right_speed = 0;
+    }
+    
+    // 设置左右轮速度
+    SetSpeed_Left(left_speed);
+    SetSpeed_Right(right_speed);
+}
+	
+#elif 1
+void run(void) {
+	/*  避障代码 */
+	obstacle_avoidance();
+
+    // 设置目标值
+    int target_speed = 5000;
+    int target_position = 0;
+    
+    // 调用速度环PID控制器
+    int base_speed = speed_control_pid(target_speed);
+    
+    // 调用方向环PID控制器
+    int direction_adjust = direction_control_pid(target_position);
+    
+    // 检查是否到达终点
+    if (direction_adjust == 9999) {
+        SetSpeed_Left(0);
+        SetSpeed_Right(0);
+        //return;
+    }
+    
+    // 计算左右轮速度
+    int left_speed = base_speed - direction_adjust;
+    int right_speed = base_speed + direction_adjust;
+    
+    // 限制速度范围
+    if (left_speed > 7200) left_speed = 7200;
+    if (left_speed < -7200) left_speed = -7200;
+    if (right_speed > 7200) right_speed = 7200;
+    if (right_speed < -7200) right_speed = -7200;
+    
+    // 设置左右轮速度
+    SetSpeed_Left(left_speed);
+    SetSpeed_Right(right_speed);
+}
+#endif
