@@ -50,16 +50,15 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, PR2_Pin|PL2_Pin|TR_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(TR_GPIO_Port, TR_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, MPU6050_SDA_Pin|MPU6050_SCL_Pin|OLED_SCL_Pin|OLED_SDA_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PR2_Pin PL2_Pin */
-  GPIO_InitStruct.Pin = PR2_Pin|PL2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  /*Configure GPIO pins : AJ1_Pin track4_Pin track5_Pin track6_Pin */
+  GPIO_InitStruct.Pin = AJ1_Pin|track4_Pin|track5_Pin|track6_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : track1_Pin track2_Pin track3_Pin */
@@ -67,12 +66,6 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : track4_Pin track5_Pin track6_Pin */
-  GPIO_InitStruct.Pin = track4_Pin|track5_Pin|track6_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : TR_Pin */
   GPIO_InitStruct.Pin = TR_Pin;

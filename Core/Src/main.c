@@ -31,6 +31,7 @@
 #include "HRSR04.h"
 #include "control.h"
 #include "badc.h"
+#include "encoder.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -102,34 +103,49 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM1_Init();
   MX_ADC1_Init();
+  MX_TIM2_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
   Control_Init();
   
-  // 启动超声波模块的定时器
-  HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
+  /* 启动超声波模块的定时器 */
+  //HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
 
-  // 初始化串口协议
-  HAL_USART_Init(&usart_protocol, &huart3);
-  // 设置数据接收回调函数
-  usart_protocol_set_callback(&usart_protocol,my_data_received_callback);
+  /* 初始化串口协议 */
+  //HAL_USART_Init(&usart_protocol, &huart3);
+  /* 设置数据接收回调函数 */
+  //usart_protocol_set_callback(&usart_protocol,my_data_received_callback);
+
+  /* 启动编码器模块的定时器 */
+  HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
+	HAL_TIM_Encoder_Start(&htim4,TIM_CHANNEL_ALL);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   /* 串口数据发送测试代码 */
-  usart_protocol_send_data(&usart_protocol, data, length);
-
-  OLED_ShowString(4,1,"Distance:");
-  //SetSpeed_Left(6000);
-  //SetSpeed_Right(3500);
-  //HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
+  //usart_protocol_send_data(&usart_protocol, data, length);
+  
+  OLED_ShowString(1,1,"speedL:");
+  OLED_ShowString(2,1,"speedR:");
+  OLED_ShowString(3,1,"Distance:");
+  SetSpeed_Left(3500);
+  SetSpeed_Right(-3500);
+  
+  int left_speed  = 0;
+  int right_speed = 0;
   
   while (1)
   {
+    left_speed  = get_left_encoder_speed();
+    right_speed = get_right_encoder_speed();
+    OLED_ShowSignedNum(1, 8, left_speed, 4);
+    OLED_ShowSignedNum(2, 8, right_speed, 4);
+    HAL_Delay(200);
     /* -----------------超声波测试代码------------------ */
-    uint32_t dis = Ultrasonic_GetDistance();
-    OLED_ShowNum(4, 10, dis, 3);
+    // uint32_t dis = Ultrasonic_GetDistance();
+    // OLED_ShowNum(4, 10, dis, 3);
     /* --------------------------------------------------- */
 
     /* --------------串口接收数据测试代码------------------- */

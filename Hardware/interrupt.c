@@ -8,24 +8,18 @@ volatile uint8_t mpu6050_data_ready = 0; // ‘volatile’ 关键字很重要，
  * @param  htim: 定时器句柄
  * @retval 无
  */
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
-{
-	
-	if(TIM1 == htim->Instance)
-	{
-		if (is_first_capture)
-    {
-        pulse_start = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_3);
-        is_first_capture = 0;
-        __HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_3, TIM_INPUTCHANNELPOLARITY_FALLING); // 改为下降沿
-    }
-    else
-    {
-        pulse_end = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_3);
-        capture_done = 1;
-        is_first_capture = 1;
-        __HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_3, TIM_INPUTCHANNELPOLARITY_RISING); // 准备下次捕获
-    }
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
+	if(htim->Instance == TIM1) {
+		if (is_first_capture) {
+            pulse_start = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_3);   // 读取上升沿捕获值
+            is_first_capture = 0;
+            __HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_3, TIM_INPUTCHANNELPOLARITY_FALLING); // 改为下降沿
+        } else {
+            pulse_end = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_3);
+            capture_done = 1;
+            is_first_capture = 1;
+            __HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_3, TIM_INPUTCHANNELPOLARITY_RISING); // 准备下次捕获
+        }
 	}
 }
 

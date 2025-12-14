@@ -5,8 +5,7 @@ volatile uint32_t pulse_end = 0;
 volatile uint8_t capture_done = 0;
 volatile uint8_t is_first_capture = 1;
 
-void Delay_us(uint32_t xus)
-{
+void Delay_us(uint32_t xus) {
 	SysTick->LOAD = 72 * xus;				//设置定时器重装值
 	SysTick->VAL = 0x00;					//清空当前计数值
 	SysTick->CTRL = 0x00000005;				//设置时钟源为HCLK，启动定时器
@@ -14,18 +13,15 @@ void Delay_us(uint32_t xus)
 	SysTick->CTRL = 0x00000004;				//关闭定时器
 }
 
-void Ultrasonic_Trigger(void)
-{
+void Ultrasonic_Trigger(void) {
     capture_done = 0;
     HRSR04_W_TR(1);
-    //HAL_Delay(15);ms
     Delay_us(15);
     HRSR04_W_TR(0);
 }
 
 /* 距离计算函数 */
-uint32_t Ultrasonic_GetDistance(void)
-{
+uint32_t Ultrasonic_GetDistance(void) {
     Ultrasonic_Trigger();
 
     uint32_t res = 0;

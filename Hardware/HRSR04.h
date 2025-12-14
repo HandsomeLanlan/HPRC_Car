@@ -4,7 +4,7 @@
 #include "main.h"
 
 #define HRSR04_W_TR(x)  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, (GPIO_PinState)(x))
-#define HRSR04_W_EC(x)  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, (GPIO_PinState)(x))
+#define HRSR04_W_EC()  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10)
 
 extern volatile uint32_t pulse_start;
 extern volatile uint32_t pulse_end;
