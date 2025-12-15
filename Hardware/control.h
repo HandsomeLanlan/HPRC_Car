@@ -3,6 +3,7 @@
 
 #include "main.h"
 
+/* 六路循迹 */
 extern int track1, track2, track3, track4, track5, track6;
 
 void get_track_status(void);
