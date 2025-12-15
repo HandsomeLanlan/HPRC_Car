@@ -54,20 +54,21 @@ void SetSpeed_Right(int speed) {
 	
 	if (speed > 0) {
 		speed = min_right_speed + speed * (7200 - min_right_speed) / 7200;	//小于3500不转
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, speed); 	//PB0
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, 0);		//PB1
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, 0); 	//PB0
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, speed);		//PB1
 	} else {
 		speed = -speed;
 		speed = min_right_speed + speed * (7200 - min_right_speed) / 7200;	//小于3500不转
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, 0); 		//PB0
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, speed);	//PB1
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, speed); 		//PB0
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, 0);	//PB1
 	}
 }
 
 /* 避障 */
 int obstacle_avoidance(void) {
     uint32_t distance = Ultrasonic_GetDistance();   /* 获取距离 */
-    //OLED_ShowNum(3, 10, distance, 3);
+    
+    OLED_ShowNum(2, 10, distance, 3);
 
     static int flag = 0;    /* 检测到障碍物时为1，重新回到循迹线上为0 */
 
@@ -126,14 +127,17 @@ void run(void) {
 }
 	
 #elif 1
+/**
+ * @brief   运行代码
+ */
 void run(void) {
 	/*  避障代码 */
-    int statue = obstacle_avoidance();
-	if (statue)
-        return;
+    // int statue = obstacle_avoidance();
+	// if (statue)
+    //     return;
 
     // 设置目标值
-    int target_speed = 5000;
+    int target_speed = 4000;
     int target_position = 0;
     
     // 调用速度环PID控制器
@@ -142,11 +146,14 @@ void run(void) {
     // 调用方向环PID控制器
     int direction_adjust = direction_control_pid(target_position);
     
+    OLED_ShowSignedNum(4, 1, base_speed, 4);
+    OLED_ShowSignedNum(4, 7, direction_adjust, 4);
+
     // 检查是否到达终点
     if (direction_adjust == 9999) {
         SetSpeed_Left(0);
         SetSpeed_Right(0);
-        //return;
+        return;
     }
     
     // 计算左右轮速度

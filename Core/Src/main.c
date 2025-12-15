@@ -132,11 +132,12 @@ int main(void)
   /* 串口数据发送测试代码 */
   //usart_protocol_send_data(&usart_protocol, data, length);
   
-  OLED_ShowString(1,1,"speedL:");
-  OLED_ShowString(2,1,"speedR:");
-  OLED_ShowString(3,1,"Distance:");
-  // SetSpeed_Left(3500);
-  // SetSpeed_Right(-3500);
+  OLED_ShowString(1,1,"L:");
+  OLED_ShowString(1,9,"R:");
+  OLED_ShowString(2,1,"Distance:");
+  OLED_ShowString(3,1,"Tracks:");
+  //SetSpeed_Left(7200);
+  //SetSpeed_Right(7200);
   
   // int left_speed  = 0;
   // int right_speed = 0;
@@ -154,7 +155,7 @@ int main(void)
 
     run();
 
-    //HAL_Delay(200);
+    HAL_Delay(200);
 
     /* --------------串口接收数据测试代码------------------- */
     // OLED_ShowNum(1, 1, usart_protocol.rx_buffer[0], 2);
