@@ -65,9 +65,30 @@ void SetSpeed_Right(int speed) {
 }
 
 /* 避障 */
-void obstacle_avoidance(void) {
-	/* 获取距离 */
-    uint32_t distance = Ultrasonic_GetDistance();
+int obstacle_avoidance(void) {
+    uint32_t distance = Ultrasonic_GetDistance();   /* 获取距离 */
+    //OLED_ShowNum(3, 10, distance, 3);
+
+    static int flag = 0;    /* 检测到障碍物时为1，重新回到循迹线上为0 */
+
+    if (distance < 20) {    /* 检测到障碍物，向左躲避直到前方无障碍物*/
+        SetSpeed_Left(0);
+        SetSpeed_Right(5000);
+        flag = 1;
+        return 1;
+    } else if (distance > 20 && flag == 1) {    /* 此时前方已经没有障碍物 */
+        SetSpeed_Left(5000);
+        SetSpeed_Right(0);
+    }
+
+    get_track_status();
+    uint8_t tracks = (track1 << 5) | (track2 << 4) | (track3 << 3) | (track4 << 2) | (track5 << 1) | track6;
+    /* 检测到黑线，继续循迹 */
+    if (tracks) {
+        flag = 0;
+        return 0;
+    }
+    return 0;
 }
 
 /* 整体的逻辑代码 */
@@ -107,7 +128,9 @@ void run(void) {
 #elif 1
 void run(void) {
 	/*  避障代码 */
-	obstacle_avoidance();
+    int statue = obstacle_avoidance();
+	if (statue)
+        return;
 
     // 设置目标值
     int target_speed = 5000;

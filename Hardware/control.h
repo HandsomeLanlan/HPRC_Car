@@ -9,7 +9,7 @@ void get_track_status(void);
 void Control_Init(void);
 void SetSpeed_Left(int speed);
 void SetSpeed_Right(int speed);
-void obstacle_avoidance(void);
+int obstacle_avoidance(void);
 void run(void);
 
 

@@ -115,7 +115,7 @@ int main(void)
   Control_Init();
   
   /* 启动超声波模块的定时器 */
-  //HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
+  HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
 
   /* 初始化串口协议 */
   //HAL_USART_Init(&usart_protocol, &huart3);
@@ -138,9 +138,9 @@ int main(void)
   // SetSpeed_Left(3500);
   // SetSpeed_Right(-3500);
   
-  int left_speed  = 0;
-  int right_speed = 0;
-  uint32_t distance;
+  // int left_speed  = 0;
+  // int right_speed = 0;
+  // uint32_t distance;
   
   while (1)
   {

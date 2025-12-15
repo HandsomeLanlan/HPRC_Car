@@ -74,8 +74,7 @@ int direction_control_pid(int target_position) {
     get_track_status();
 
     // 计算当前位置偏差
-    uint8_t tracks = (track1 << 5) | (track2 << 4) | (track3 << 3) | 
-                     (track4 << 2) | (track5 << 1) | track6;
+    uint8_t tracks = (track1 << 5) | (track2 << 4) | (track3 << 3) | (track4 << 2) | (track5 << 1) | track6;
     
     OLED_ShowBinNum(4, 1, tracks, 6);
 
@@ -108,6 +107,8 @@ int speed_control_pid(int target_speed) {
     // 获取编码器反馈速度
     int left_encoder_speed = get_left_encoder_speed();
     int right_encoder_speed = get_right_encoder_speed();
+    // OLED_ShowSignedNum(1, 8, left_encoder_speed, 4);
+    // OLED_ShowSignedNum(2, 8, right_encoder_speed, 4);
     int current_speed = (left_encoder_speed + right_encoder_speed) / 2; // 平均速度
     
     // PID计算
