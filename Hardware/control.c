@@ -8,7 +8,14 @@
 #define min_left_speed 3500		//左电机小于3500不转
 #define min_right_speed 3500	//右电机小于3500不转
 
+// 设置目标值
+int target_speed = 2000;
+int target_position = 0;
+int left_encoder_speed;
+int right_encoder_speed;
+
 int track1, track2, track3, track4, track5, track6;	//红外传感器(从左往右)
+int base_speed,right_speed,left_speed,direction_adjust;
 
 /* 红外循迹从左往右 */
 void get_track_status(void) {
@@ -135,19 +142,15 @@ void run(void) {
     // int statue = obstacle_avoidance();
 	// if (statue)
     //     return;
-
-    // 设置目标值
-    int target_speed = 4000;
-    int target_position = 0;
     
     // 调用速度环PID控制器
-    int base_speed = speed_control_pid(target_speed);
+    base_speed = speed_control_pid(target_speed);
     
     // 调用方向环PID控制器
-    int direction_adjust = direction_control_pid(target_position);
+    direction_adjust = direction_control_pid(target_position);
     
-    OLED_ShowSignedNum(4, 1, base_speed, 4);
-    OLED_ShowSignedNum(4, 7, direction_adjust, 4);
+    //OLED_ShowSignedNum(4, 1, base_speed, 4);
+    //OLED_ShowSignedNum(4, 7, direction_adjust, 4);
 
     // 检查是否到达终点
     if (direction_adjust == 9999) {
@@ -157,8 +160,9 @@ void run(void) {
     }
     
     // 计算左右轮速度
-    int left_speed = base_speed - direction_adjust;
-    int right_speed = base_speed + direction_adjust;
+    direction_adjust = 0; //先调速度环，忽略方向环
+    left_speed = base_speed - direction_adjust;
+    right_speed = base_speed + direction_adjust;
     
     // 限制速度范围
     if (left_speed > 7200) left_speed = 7200;
@@ -169,5 +173,8 @@ void run(void) {
     // 设置左右轮速度
     SetSpeed_Left(left_speed);
     SetSpeed_Right(right_speed);
+
+    OLED_ShowSignedNum(4, 1, left_speed, 4);
+    OLED_ShowSignedNum(4, 7, right_speed, 4);
 }
 #endif

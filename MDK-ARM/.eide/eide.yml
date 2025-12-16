@@ -79,7 +79,8 @@ targets:
         - .cmsis/include
         - RTE/_HPRC_Car
       libList: []
-    excludeList: []
+    excludeList:
+      - ../Hardware/HAL_USART.c
     toolchain: AC5
     toolchainConfigMap:
       AC5:
@@ -100,14 +101,11 @@ targets:
             warnings: all-warnings
           global:
             output-debug-info: enable
-            use-microLIB: false
+            use-microLIB: true
           linker:
             $outputTaskExcludes:
               - .bin
             output-format: elf
-            ro-base: ""
-            rw-base: ""
-            xo-base: ""
         scatterFilePath: ""
         storageLayout:
           RAM:

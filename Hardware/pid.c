@@ -30,7 +30,7 @@ static pid_control direction_pid = {
 
 // 速度环PID控制器
 static pid_control speed_pid = {
-    .kp = 0.5f,
+    .kp = 1.0f,
     .ki = 0.01f,
     .kd = 0.1f,
     .integral = 0.0f,
@@ -88,6 +88,11 @@ int direction_control_pid(int target_position) {
     // 计算当前位置偏差
     uint8_t tracks = (track1 << 5) | (track2 << 4) | (track3 << 3) | (track4 << 2) | (track5 << 1) | track6;
     
+    // 终点检测
+    if (tracks == 63) {
+        return 9999; // 特殊返回值表示终点
+    }
+
     OLED_ShowBinNum(3, 8, tracks, 6);
 
     int current_position = 0;
@@ -96,11 +101,6 @@ int direction_control_pid(int target_position) {
     current_position = -5 * track1 - 3 * track2 - 1 * track3 + 1 * track4 + 3 * track5 + 5 * track6;
 
     //OLED_ShowSignedNum(4, 6, current_position, 4);
-    
-    // 终点检测
-    if (tracks == 63) {
-        return 9999; // 特殊返回值表示终点
-    }
     
     // PID计算
     float direction_output = pid_calculate(&direction_pid, (float)target_position, (float)current_position);
@@ -115,8 +115,8 @@ int direction_control_pid(int target_position) {
  */
 int speed_control_pid(int target_speed) {
     // 获取编码器反馈速度
-    int left_encoder_speed = get_left_encoder_speed();
-    int right_encoder_speed = get_right_encoder_speed();
+    left_encoder_speed = get_left_encoder_speed();
+    right_encoder_speed = get_right_encoder_speed();
 
     OLED_ShowSignedNum(1, 3, left_encoder_speed, 4);
     OLED_ShowSignedNum(1, 11, right_encoder_speed, 4);

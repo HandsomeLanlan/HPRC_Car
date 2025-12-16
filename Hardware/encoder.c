@@ -16,8 +16,8 @@ int get_right_encoder_speed(void) {
         last_time = current_time;
     }
     
-    //return pulse_count;
-    return pulse_count * 7200.0 / 1600.0;   /* 修正后的 */
+    return pulse_count;
+    //return pulse_count * 7200.0 / 1600.0;   /* 修正后的 */
 }
 
 /* 获取左电机编码器的速度 */
@@ -34,6 +34,6 @@ int get_left_encoder_speed(void) {
         last_time = current_time;
     }
     
-    //return -pulse_count;
-    return -pulse_count * 7200.0 / 1900.0;  /* 修正后的 */
+    return -pulse_count;
+    //return -pulse_count * 7200.0 / 1900.0;  /* 修正后的 */
 }
