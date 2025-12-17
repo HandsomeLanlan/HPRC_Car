@@ -4,6 +4,6 @@
 #include "main.h"
 
 int direction_control_pid(int target_position);
-int speed_control_pid(int target_speed);
+void speed_control_pid(int target_speed, int* left_speed, int* right_speed);
 
 #endif

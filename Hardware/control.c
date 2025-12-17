@@ -9,7 +9,7 @@
 #define min_right_speed 3500	//右电机小于3500不转
 
 // 设置目标值
-int target_speed = 2000;
+int target_speed = 20;
 int target_position = 0;
 int left_encoder_speed;
 int right_encoder_speed;
@@ -144,7 +144,7 @@ void run(void) {
     //     return;
     
     // 调用速度环PID控制器
-    base_speed = speed_control_pid(target_speed);
+    speed_control_pid(target_speed,&left_speed,&right_speed);
     
     // 调用方向环PID控制器
     direction_adjust = direction_control_pid(target_position);
@@ -153,16 +153,16 @@ void run(void) {
     //OLED_ShowSignedNum(4, 7, direction_adjust, 4);
 
     // 检查是否到达终点
-    if (direction_adjust == 9999) {
-        SetSpeed_Left(0);
-        SetSpeed_Right(0);
-        return;
-    }
+    // if (direction_adjust == 9999) {
+    //     SetSpeed_Left(0);
+    //     SetSpeed_Right(0);
+    //     return;
+    // }
     
     // 计算左右轮速度
     direction_adjust = 0; //先调速度环，忽略方向环
-    left_speed = base_speed - direction_adjust;
-    right_speed = base_speed + direction_adjust;
+    left_speed = left_speed - direction_adjust;
+    right_speed = right_speed + direction_adjust;
     
     // 限制速度范围
     if (left_speed > 7200) left_speed = 7200;
