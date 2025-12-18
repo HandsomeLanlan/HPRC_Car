@@ -4,11 +4,18 @@
 #include "pid.h"
 #include "HAL_OLED.h"
 #include "HRSR04.h"
+#include "encoder.h"
 
-#define min_left_speed 3500		//左电机小于3500不转
-#define min_right_speed 3500	//右电机小于3500不转
+#define MAX_PWM 7200
+
+// 设置目标值
+volatile uint8_t target_speed = 0;
+int target_position = 0;
+int left_encoder_speed;
+int right_encoder_speed;
 
 int track1, track2, track3, track4, track5, track6;	//红外传感器(从左往右)
+int base_speed,right_speed,left_speed,direction_adjust;
 
 /* 红外循迹从左往右 */
 void get_track_status(void) {
@@ -30,38 +37,31 @@ void Control_Init(void) {
 
 
 void SetSpeed_Left(int speed) {
-	
-	
-	if (speed > 7200) speed = 7200;
-	if (speed < -7200) speed = -7200;
-	
-	if (speed > 0) {
-		speed = min_left_speed + speed * (7200 - min_left_speed) / 7200;	//小于3500不转
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, speed); 	//PA6
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);		//PA7
-	} else {
-		speed = -speed;
-		speed = min_left_speed + speed * (7200 - min_left_speed) / 7200;	//小于3500不转
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0); 		//PA6
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, speed);	//PA7
-	}
+
+    if(speed > 0)
+    {
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, MAX_PWM);
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, MAX_PWM - speed);
+    }
+    else
+    {   
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, MAX_PWM + speed); 
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, MAX_PWM);         
+    }
 }
 
 void SetSpeed_Right(int speed) {
-	
-	if (speed > 7200) speed = 7200;
-	if (speed < -7200) speed = -7200;
-	
-	if (speed > 0) {
-		speed = min_right_speed + speed * (7200 - min_right_speed) / 7200;	//小于3500不转
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, 0); 	//PB0
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, speed);		//PB1
-	} else {
-		speed = -speed;
-		speed = min_right_speed + speed * (7200 - min_right_speed) / 7200;	//小于3500不转
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, speed); 		//PB0
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, 0);	//PB1
-	}
+    speed = -speed; //右电机正方向与小车前进方向相反
+    if(speed > 0)
+    {
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, MAX_PWM);
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, MAX_PWM - speed);
+    }
+    else
+    {   
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, MAX_PWM + speed); 
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, MAX_PWM);         
+    }
 }
 
 /* 避障 */
@@ -130,44 +130,35 @@ void run(void) {
 /**
  * @brief   运行代码
  */
-void run(void) {
-	/*  避障代码 */
-    // int statue = obstacle_avoidance();
-	// if (statue)
-    //     return;
+void run(void)
+{
+    /* 1. 方向环：输出差速（单位：速度） */
+    //int diff_speed = direction_control_pid(target_position);
 
-    // 设置目标值
-    int target_speed = 4000;
-    int target_position = 0;
-    
-    // 调用速度环PID控制器
-    int base_speed = speed_control_pid(target_speed);
-    
-    // 调用方向环PID控制器
-    int direction_adjust = direction_control_pid(target_position);
-    
-    OLED_ShowSignedNum(4, 1, base_speed, 4);
-    OLED_ShowSignedNum(4, 7, direction_adjust, 4);
+    /* 2. 生成左右目标速度 */
+    int target_left_speed  = target_speed;
+    int target_right_speed = target_speed;
 
-    // 检查是否到达终点
-    if (direction_adjust == 9999) {
-        SetSpeed_Left(0);
-        SetSpeed_Right(0);
-        return;
-    }
-    
-    // 计算左右轮速度
-    int left_speed = base_speed - direction_adjust;
-    int right_speed = base_speed + direction_adjust;
-    
-    // 限制速度范围
-    if (left_speed > 7200) left_speed = 7200;
-    if (left_speed < -7200) left_speed = -7200;
-    if (right_speed > 7200) right_speed = 7200;
-    if (right_speed < -7200) right_speed = -7200;
-    
-    // 设置左右轮速度
-    SetSpeed_Left(left_speed);
-    SetSpeed_Right(right_speed);
+    /* 3.限制目标速度 */
+    if(target_left_speed > 7200) target_left_speed = 7200;
+    if(target_left_speed < -7200) target_left_speed = -7200;
+    if(target_right_speed > 7200) target_right_speed = 7200;
+    if(target_right_speed < -7200) target_right_speed = -7200;
+
+    /* 4. 读取编码器 */
+    int read_left_speed  = get_left_encoder_speed();
+    int read_right_speed = get_right_encoder_speed();
+
+    printf("%d,%d,%d\n",target_speed,read_left_speed,-read_right_speed);
+
+    /* 5. 左右速度环分别计算 */
+    //int pwm_left = speed_control_single(&speed_pid_left, &left_ff,target_left_speed,read_left_speed);
+    //int pwm_right = speed_control_single(&speed_pid_right,&right_ff,target_right_speed,read_right_speed);
+    int pwm_left = speed_control_single(&speed_pid_left,target_left_speed,read_left_speed);
+    int pwm_right = speed_control_single(&speed_pid_right,target_right_speed,read_right_speed);
+    /* 6. 输出 PWM */
+    SetSpeed_Left(pwm_left);
+    SetSpeed_Right(pwm_right);
 }
+
 #endif

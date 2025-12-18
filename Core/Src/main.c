@@ -52,22 +52,15 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-extern usart_protocol_t usart_protocol;
-
-/* 发送串口数据 */
-uint8_t data[] = "HelloWorld";
-uint8_t length = 10;
-
-int left_speed;
-int right_speed;
-uint32_t distance;
-
+char Serial_RxPacket[100];
+uint8_t Serial_RxFlag = 0;
+uint8_t RxData;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+int get_target_speed(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -114,30 +107,25 @@ int main(void)
   OLED_Init();
   Control_Init();
   
-  /* 启动超声波模块的定时器 */
+  /* �?动超声波模块的定时器 */
   HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
 
-  /* 初始化串口协议 */
-  //HAL_USART_Init(&usart_protocol, &huart3);
-  /* 设置数据接收回调函数 */
-  //usart_protocol_set_callback(&usart_protocol,my_data_received_callback);
-
-  /* 启动编码器模块的定时器 */
+  /* �?动编码器模块的定时器 */
   HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
 	HAL_TIM_Encoder_Start(&htim4,TIM_CHANNEL_ALL);
+
+  HAL_UART_Receive_IT(&huart3, &RxData, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  /* 串口数据发送测试代码 */
-  //usart_protocol_send_data(&usart_protocol, data, length);
   
-  OLED_ShowString(1,1,"L:");
-  OLED_ShowString(1,9,"R:");
-  OLED_ShowString(2,1,"Distance:");
-  OLED_ShowString(3,1,"Tracks:");
-  //SetSpeed_Left(7200);
-  //SetSpeed_Right(7200);
+  // OLED_ShowString(1,1,"L:");
+  // OLED_ShowString(1,9,"R:");
+  // OLED_ShowString(2,1,"Distance:");
+  // OLED_ShowString(3,1,"Tracks:");
+   //SetSpeed_Left(2000);
+   //SetSpeed_Right(2000);
   
   // int left_speed  = 0;
   // int right_speed = 0;
@@ -145,6 +133,8 @@ int main(void)
   
   while (1)
   {
+    //left_encoder_speed = get_left_encoder_speed();
+    //right_encoder_speed = get_right_encoder_speed();
     // left_speed  = get_left_encoder_speed();
     // right_speed = get_right_encoder_speed();
     // OLED_ShowSignedNum(1, 8, left_speed, 4);
@@ -152,22 +142,23 @@ int main(void)
 
     // distance = Ultrasonic_GetDistance();
     // OLED_ShowNum(3, 10, distance, 3);
-
+    
+    //printf("%d,%d,%d\n",target_speed,left_encoder_speed,-right_encoder_speed);
+    if(Serial_RxFlag == 1)
+    {
+      target_speed = get_target_speed();
+      Serial_RxFlag = 0;
+    }
+    OLED_ShowSignedNum(1, 3, target_speed, 4);
+    /*****************/
+    //  OLED_ShowSignedNum(1, 3, left_encoder_speed, 4);
+    //  OLED_ShowSignedNum(1, 11, right_encoder_speed, 4);
     run();
 
-    HAL_Delay(200);
-
-    /* --------------串口接收数据测试代码------------------- */
-    // OLED_ShowNum(1, 1, usart_protocol.rx_buffer[0], 2);
-    // OLED_ShowNum(1, 3, usart_protocol.rx_buffer[1], 2);
-    // OLED_ShowNum(1, 6, usart_protocol.rx_buffer[2], 2);
-    // OLED_ShowNum(1, 9, usart_protocol.rx_buffer[3], 2);
-    // OLED_ShowNum(1, 12, usart_protocol.rx_buffer[4], 2);
-    // OLED_ShowNum(1, 14, usart_protocol.rx_buffer[5], 2);
-    /* --------------------------------------------------- */
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
   }
   /* USER CODE END 3 */
 }
@@ -219,6 +210,40 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  static uint8_t pRxPacket = 0;
+  if (RxData == '!')
+	{
+		Serial_RxPacket[pRxPacket] = '\0';
+    pRxPacket = 0;
+		Serial_RxFlag = 1;
+	}
+  else
+  {
+    Serial_RxPacket[pRxPacket] = RxData;
+    pRxPacket++;
+  }
+
+  HAL_UART_Receive_IT(&huart3, &RxData, 1);
+}
+
+int get_target_speed(void)
+{
+    int data = 0;
+    for(uint8_t i = 0; Serial_RxPacket[i] != '\0'; i++)
+    {
+      data = data * 10 + (Serial_RxPacket[i] - '0');
+    }
+    return data;
+}
+
+int fputc(int ch, FILE *f)
+{
+  HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 0xffff);
+  return ch;
+}
 
 /* USER CODE END 4 */
 
