@@ -20,25 +20,26 @@ pid_control direction_pid = {
 // 速度环左电机PID控制器
 pid_control speed_pid_left = {
     .kp = 225.0f,
-    .ki = 1.8f,
-    .kd = 20.0f,
+    .ki = 5.2f,
+    .kd = 0.0f,
     .integral = 0.0f,
-    .integral_limit = 5800.0f,
+    .integral_limit = 1200.0f,
     .last_error = 0.0f,
     .output_limit = 7200.0f,
-    .a = 0.3f,
+    .a = 0.4f,
     .filtered_error = 0.0f
 };
 // 速度环右电机PID控制器
 pid_control speed_pid_right = {
-    .kp = 30.0f,
-    .ki = 0.0f,
+    
+    .kp = 200.0f,
+    .ki = 5.4f,
     .kd = 0.0f,
     .integral = 0.0f,
-    .integral_limit = 0.0f,
+    .integral_limit = 875.0f,
     .last_error = 0.0f,
-    .output_limit = 7200.0f,
-    .a = 0.3f,
+    .output_limit = 6000.0f,
+    .a = 0.4f,
     .filtered_error = 0.0f
 };
 
@@ -113,7 +114,8 @@ static float pid_calculate(pid_control* pid, float expect, float actual) {
     float error = expect - actual;
 
     /* 一阶滤波 */
-    pid->filtered_error = pid->a * error + (1 - pid->a) * pid->filtered_error;
+    //pid->filtered_error = pid->a * error + (1 - pid->a) * pid->last_error;
+    pid->filtered_error = error;
 
     pid->integral += pid->filtered_error;
     
@@ -188,10 +190,6 @@ int speed_control_single(pid_control *pid,int target_speed,int actual_speed)
 
     //float pwm = pwm_ff + pwm_pid;
     float pwm = pwm_pid;
-
-    /* 限幅 */
-    if (pwm > pid->output_limit)  pwm = pid->output_limit;
-    if (pwm < -pid->output_limit) pwm = -pid->output_limit;
 
     return (int)pwm;
 }

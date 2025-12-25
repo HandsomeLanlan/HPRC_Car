@@ -8,16 +8,16 @@
 
 #define MAX_PWM 7200
 
-// 设置目标值
+// 设置�?标�?
 volatile uint8_t target_speed = 0;
 int target_position = 0;
 int left_encoder_speed;
 int right_encoder_speed;
 
-int track1, track2, track3, track4, track5, track6;	//红外传感器(从左往右)
+int track1, track2, track3, track4, track5, track6;	//红�?�传感器(从左往�?)
 int base_speed,right_speed,left_speed,direction_adjust;
 
-/* 红外循迹从左往右 */
+/* 红�?�循迹从左往�? */
 void get_track_status(void) {
 	track1 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12);
 	track2 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11);
@@ -27,7 +27,7 @@ void get_track_status(void) {
 	track6 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_13);
 }
 
-/* PWM通道初始化 */
+/* PWM通道初�?�化 */
 void Control_Init(void) {	
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
@@ -37,7 +37,7 @@ void Control_Init(void) {
 
 
 void SetSpeed_Left(int speed) {
-
+    speed = -speed; //左电机�?�方向与小车前进方向相反
     if(speed > 0)
     {
         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, MAX_PWM);
@@ -51,7 +51,7 @@ void SetSpeed_Left(int speed) {
 }
 
 void SetSpeed_Right(int speed) {
-    speed = -speed; //右电机正方向与小车前进方向相反
+    speed = -speed; //右电机�?�方向与小车前进方向相反
     if(speed > 0)
     {
         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, MAX_PWM);
@@ -66,25 +66,25 @@ void SetSpeed_Right(int speed) {
 
 /* 避障 */
 int obstacle_avoidance(void) {
-    uint32_t distance = Ultrasonic_GetDistance();   /* 获取距离 */
+    uint32_t distance = Ultrasonic_GetDistance();   /* 获取距�?? */
     
     OLED_ShowNum(2, 10, distance, 3);
 
-    static int flag = 0;    /* 检测到障碍物时为1，重新回到循迹线上为0 */
+    static int flag = 0;    /* 检测到障�?�物时为1，重新回到循迹线上为0 */
 
-    if (distance < 20) {    /* 检测到障碍物，向左躲避直到前方无障碍物*/
+    if (distance < 20) {    /* 检测到障�?�物，向左躲避直到前方无障�?�物*/
         SetSpeed_Left(0);
         SetSpeed_Right(5000);
         flag = 1;
         return 1;
-    } else if (distance > 20 && flag == 1) {    /* 此时前方已经没有障碍物 */
+    } else if (distance > 20 && flag == 1) {    /* 此时前方已经没有障�?�物 */
         SetSpeed_Left(5000);
         SetSpeed_Right(0);
     }
 
     get_track_status();
     uint8_t tracks = (track1 << 5) | (track2 << 4) | (track3 << 3) | (track4 << 2) | (track5 << 1) | track6;
-    /* 检测到黑线，继续循迹 */
+    /* 检测到黑线，继�?�?�? */
     if (tracks) {
         flag = 0;
         return 0;
@@ -98,21 +98,21 @@ void run(void) {
     uint8_t tracks = (track1 << 5) | (track2 << 4) | (track3 << 3) | 
                           (track4 << 2) | (track5 << 1) | track6;
     
-    /* [6个传感器的状态]{左电机速度的增量,右电机速度的增量} */
+    /* [6�?传感器的状态]{左电机速度的�?�量,右电机速度的�?�量} */
     static const int speed_adjust[64][2] = {
-        // 只列出常见的几种情况，其余可根据实际需求补充
+        // �?列出常�?�的几�?�情况，其余�?根据实际需求补�?
         [0]  = {0, 0},      // 111111
-        [7]  = {0, 0},      // 000111 - 直行
-        [14] = {-500, 500}, // 001110 - 微微右偏，需要向左调整
-        [28] = {500, -500}, // 011100 - 微微左偏，需要向右调整
-        [24] = {1000, -1000}, // 011000 - 左偏较多，需要右转
-        [63] = {0, 0}       // 111111 - 全部在线上(十字路口或终点)
+        [7]  = {0, 0},      // 000111 - 直�??
+        [14] = {-500, 500}, // 001110 - �?�?右偏，需要向左调�?
+        [28] = {500, -500}, // 011100 - �?�?左偏，需要向右调�?
+        [24] = {1000, -1000}, // 011000 - 左偏较�?�，需要右�?
+        [63] = {0, 0}       // 111111 - 全部在线�?(十字�?口或终点)
     };
     
-    // 基础速度
+    // 基�?�速度
     int base_speed = 5000;
     
-    // 根据传感器状态获取速度调整值
+    // 根据传感器状态获取速度调整�?
     int left_speed = base_speed + speed_adjust[tracks][0];
     int right_speed = base_speed + speed_adjust[tracks][1];
     
@@ -121,37 +121,37 @@ void run(void) {
         right_speed = 0;
     }
     
-    // 设置左右轮速度
+    // 设置左右�?速度
     SetSpeed_Left(left_speed);
     SetSpeed_Right(right_speed);
 }
 	
 #elif 1
 /**
- * @brief   运行代码
+ * @brief   运�?�代�?
  */
 void run(void)
 {
-    /* 1. 方向环：输出差速（单位：速度） */
+    /* 1. 方向�?：输出差速（单位：速度�? */
     //int diff_speed = direction_control_pid(target_position);
 
-    /* 2. 生成左右目标速度 */
+    /* 2. 生成左右�?标速度 */
     int target_left_speed  = target_speed;
     int target_right_speed = target_speed;
 
-    /* 3.限制目标速度 */
+    /* 3.限制�?标速度 */
     if(target_left_speed > 7200) target_left_speed = 7200;
     if(target_left_speed < -7200) target_left_speed = -7200;
     if(target_right_speed > 7200) target_right_speed = 7200;
     if(target_right_speed < -7200) target_right_speed = -7200;
 
-    /* 4. 读取编码器 */
+    /* 4. 读取编码�? */
     int read_left_speed  = get_left_encoder_speed();
     int read_right_speed = get_right_encoder_speed();
 
-    printf("%d,%d,%d\n",target_speed,read_left_speed,-read_right_speed);
+    printf("%d,%d,%d\n",target_speed,read_left_speed,read_right_speed);
 
-    /* 5. 左右速度环分别计算 */
+    /* 5. 左右速度�?分别计算 */
     //int pwm_left = speed_control_single(&speed_pid_left, &left_ff,target_left_speed,read_left_speed);
     //int pwm_right = speed_control_single(&speed_pid_right,&right_ff,target_right_speed,read_right_speed);
     int pwm_left = speed_control_single(&speed_pid_left,target_left_speed,read_left_speed);

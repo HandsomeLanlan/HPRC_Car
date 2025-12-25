@@ -33,6 +33,7 @@
 #include "badc.h"
 #include "encoder.h"
 #include "control.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -107,10 +108,10 @@ int main(void)
   OLED_Init();
   Control_Init();
   
-  /* �?动超声波模块的定时器 */
+  /* �??动超声波模块的定时器 */
   HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
 
-  /* �?动编码器模块的定时器 */
+  /* �??动编码器模块的定时器 */
   HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
 	HAL_TIM_Encoder_Start(&htim4,TIM_CHANNEL_ALL);
 
@@ -124,8 +125,8 @@ int main(void)
   // OLED_ShowString(1,9,"R:");
   // OLED_ShowString(2,1,"Distance:");
   // OLED_ShowString(3,1,"Tracks:");
-   //SetSpeed_Left(2000);
-   //SetSpeed_Right(2000);
+  //SetSpeed_Left(2000);
+  //SetSpeed_Right(2000);
   
   // int left_speed  = 0;
   // int right_speed = 0;
@@ -133,26 +134,23 @@ int main(void)
   
   while (1)
   {
-    //left_encoder_speed = get_left_encoder_speed();
-    //right_encoder_speed = get_right_encoder_speed();
-    // left_speed  = get_left_encoder_speed();
-    // right_speed = get_right_encoder_speed();
-    // OLED_ShowSignedNum(1, 8, left_speed, 4);
-    // OLED_ShowSignedNum(2, 8, right_speed, 4);
+     left_speed  = get_left_encoder_speed();
+     right_speed = get_right_encoder_speed();
+     OLED_ShowSignedNum(1, 8, left_speed, 4);
+     OLED_ShowSignedNum(2, 8, right_speed, 4);
 
     // distance = Ultrasonic_GetDistance();
     // OLED_ShowNum(3, 10, distance, 3);
     
-    //printf("%d,%d,%d\n",target_speed,left_encoder_speed,-right_encoder_speed);
+    //printf("%d,%d,%d\n",target_speed,left_speed,right_speed);
     if(Serial_RxFlag == 1)
     {
       target_speed = get_target_speed();
       Serial_RxFlag = 0;
     }
-    OLED_ShowSignedNum(1, 3, target_speed, 4);
+    //OLED_ShowSignedNum(1, 3, target_speed, 4);
     /*****************/
-    //  OLED_ShowSignedNum(1, 3, left_encoder_speed, 4);
-    //  OLED_ShowSignedNum(1, 11, right_encoder_speed, 4);
+
     run();
 
     /* USER CODE END WHILE */
