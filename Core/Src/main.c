@@ -55,7 +55,6 @@
 
 /* USER CODE BEGIN PV */
 char Serial_RxPacket[100];
-uint8_t Serial_RxFlag = 0;
 uint8_t RxData;
 /* USER CODE END PV */
 
@@ -109,10 +108,10 @@ int main(void)
   OLED_Init();
   Control_Init();
   
-  /* �???动超声波模块的定时器 */
+  /* 启动超声波模块的定时器 */
   HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
 
-  /* �???动编码器模块的定时器 */
+  /*  */
   HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
 	HAL_TIM_Encoder_Start(&htim4,TIM_CHANNEL_ALL);
 
@@ -129,30 +128,23 @@ int main(void)
   //SetSpeed_Left(2000);
   //SetSpeed_Right(2000);
   
-  // int left_speed  = 0;
-  // int right_speed = 0;
-  // uint32_t distance;
-  
+  uint32_t last_run_tick = 0;
   while (1)
   {
-     left_speed  = get_left_encoder_speed();
-     right_speed = get_right_encoder_speed();
-     OLED_ShowSignedNum(1, 8, left_speed, 4);
-     OLED_ShowSignedNum(2, 8, right_speed, 4);
-
-    // distance = Ultrasonic_GetDistance();
+     distance = Ultrasonic_GetDistance();
     // OLED_ShowNum(3, 10, distance, 3);
-    
-    //printf("%d,%d,%d\n",target_speed,left_speed,right_speed);
-    if(Serial_RxFlag == 1)
-    {
-      target_speed = get_target_speed();
-      Serial_RxFlag = 0;
-    }
-    //OLED_ShowSignedNum(1, 3, target_speed, 4);
-    /*****************/
 
-    run();
+    distance = 999; //调循迹PID时确保不进入避障任务
+    if(distance < 20)  while(obstacle_avoidance()); //ֱ完成避障任务后退出while循环
+
+    // 10ms 定时执行run函数
+    if (HAL_GetTick() - last_run_tick >= 10)   
+    {
+        last_run_tick = HAL_GetTick();
+        run();
+    }
+
+    printf("%d,%d,%d\n",target_speed,read_left_speed,read_right_speed);
 
     /* USER CODE END WHILE */
 
@@ -217,7 +209,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	{
 		Serial_RxPacket[pRxPacket] = '\0';
     pRxPacket = 0;
-		Serial_RxFlag = 1;
+		target_speed = get_target_speed();
 	}
   else
   {

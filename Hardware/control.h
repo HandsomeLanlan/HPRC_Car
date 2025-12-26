@@ -3,21 +3,16 @@
 
 #include "main.h"
 
-
-
-/* å…?è·?å¾?è¿? */
 extern int track1, track2, track3, track4, track5, track6;
-extern int left_speed, right_speed;
 extern volatile int target_speed;
-extern int left_encoder_speed;
-extern int right_encoder_speed;
+extern short read_left_speed, read_right_speed;
+extern uint32_t distance;
 
-void get_track_status(void);
+uint8_t get_track_status(void);
 void Control_Init(void);
 void SetSpeed_Left(int speed);
 void SetSpeed_Right(int speed);
-int obstacle_avoidance(void);
+uint8_t obstacle_avoidance(void);
 void run(void);
-
 
 #endif

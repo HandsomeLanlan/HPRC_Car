@@ -3,7 +3,7 @@
 
 #include "main.h"
 
-int get_right_encoder_speed(void);
-int get_left_encoder_speed(void);
+short get_right_encoder_speed(void);
+short get_left_encoder_speed(void);
 
 #endif
