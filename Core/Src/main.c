@@ -18,6 +18,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+
 #include "main.h"
 #include "adc.h"
 #include "tim.h"
@@ -108,10 +109,10 @@ int main(void)
   OLED_Init();
   Control_Init();
   
-  /* �??动超声波模块的定时器 */
+  /* �???动超声波模块的定时器 */
   HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
 
-  /* �??动编码器模块的定时器 */
+  /* �???动编码器模块的定时器 */
   HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
 	HAL_TIM_Encoder_Start(&htim4,TIM_CHANNEL_ALL);
 
@@ -230,9 +231,20 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 int get_target_speed(void)
 {
     int data = 0;
-    for(uint8_t i = 0; Serial_RxPacket[i] != '\0'; i++)
+    if(Serial_RxPacket[0] == '-')
     {
-      data = data * 10 + (Serial_RxPacket[i] - '0');
+      for(uint8_t i = 1; Serial_RxPacket[i] != '\0'; i++)
+      {
+        data = data * 10 + (Serial_RxPacket[i] - '0');
+      }
+      data = -data;
+    }
+    else
+    {
+      for(uint8_t i = 0; Serial_RxPacket[i] != '\0'; i++)
+      {
+        data = data * 10 + (Serial_RxPacket[i] - '0');
+      }
     }
     return data;
 }

@@ -4,7 +4,7 @@
 #include "gpio.h"
 #include "HAL_OLED.h"
 
-// 方向环PID控制器
+// 方向环PID控制�?
 pid_control direction_pid = {
     .kp = 0.0f,
     .ki = 0.0f,
@@ -17,28 +17,29 @@ pid_control direction_pid = {
     .filtered_error = 0.0f
 };
 
-// 速度环左电机PID控制器
+
+// 速度�?左电机PID控制�?
 pid_control speed_pid_left = {
-    .kp = 225.0f,
-    .ki = 5.2f,
+    .kp = 334.0f,
+    .ki = 1.57f,//5.8
     .kd = 0.0f,
     .integral = 0.0f,
-    .integral_limit = 1200.0f,
+    .integral_limit = 400.0f,//1200
     .last_error = 0.0f,
     .output_limit = 7200.0f,
     .a = 0.4f,
     .filtered_error = 0.0f
 };
-// 速度环右电机PID控制器
+// 速度�?右电机PID控制�? 
 pid_control speed_pid_right = {
     
-    .kp = 200.0f,
-    .ki = 5.4f,
+    .kp = 265.0f,
+    .ki = 1.325f,//6.0
     .kd = 0.0f,
     .integral = 0.0f,
-    .integral_limit = 875.0f,
+    .integral_limit = 500.0f,//875
     .last_error = 0.0f,
-    .output_limit = 6000.0f,
+    .output_limit = 5500.0f,
     .a = 0.4f,
     .filtered_error = 0.0f
 };
@@ -55,13 +56,13 @@ pid_control speed_pid_right = {
 //     .pwm_bias = 1120.0f
 // };
 
-int battery_voltage = 12.3f; // 电池电压，全局变量，可在其他地方更新
+int battery_voltage = 12.3f; // 电池电压，全局变量，可在其他地方更�?
 
 // /**
-//  * @brief 速度环前馈控制计算函数
-//  * @param ff: 前馈控制参数结构体指针
-//  * @param target_speed: 目标速度
-//  * @return 前馈输出PWM值
+//  * @brief 速度�?前�?�控制�?�算函数
+//  * @param ff: 前�?�控制参数结构体指针
+//  * @param target_speed: �?标速度
+//  * @return 前�?�输出PWM�?
 //  */
 // static float motor_speed_ff(motor_ff_t *ff, float target_speed)
 // {
@@ -80,7 +81,7 @@ int battery_voltage = 12.3f; // 电池电压，全局变量，可在其他地方
 //     }
 //     else if (target_speed < 60.0f)
 //     {
-//         /* 25~60 区间线性插值 */
+//         /* 25~60 区间线性插�? */
 //         float t = (target_speed - 25.0f) / (60.0f - 25.0f);
 //         k = k_low + t * (k_mid - k_low);
 //     }
@@ -91,10 +92,10 @@ int battery_voltage = 12.3f; // 电池电压，全局变量，可在其他地方
 
 //     float pwm = k * target_speed + ff->pwm_bias;
 
-//     /* ===== 电池电压归一化 ===== */
-//     // if (battery_voltage > 1.0f)   // 防止除零
+//     /* ===== 电池电压归一�? ===== */
+//     // if (battery_voltage > 1.0f)   // 防�?�除�?
 //     // {
-//     //     float voltage_scale = 11.17 / battery_voltage; // 11.17V为调参时的参考电压
+//     //     float voltage_scale = 11.17 / battery_voltage; // 11.17V为调参时的参考电�?
 //     //     pwm *= voltage_scale;
 //     // }
 
@@ -104,22 +105,22 @@ int battery_voltage = 12.3f; // 电池电压，全局变量，可在其他地方
 
 
 /**
- * @brief PID控制器计算函数
+ * @brief PID控制器�?�算函数
  * @param pid: PID控制器结构体指针
- * @param expect: 期望值
- * @param actual: 真实值
- * @return PID输出值
+ * @param expect: 期望�?
+ * @param actual: 真实�?
+ * @return PID输出�?
  */
 static float pid_calculate(pid_control* pid, float expect, float actual) {
     float error = expect - actual;
 
-    /* 一阶滤波 */
+    /* 一阶滤�? */
     //pid->filtered_error = pid->a * error + (1 - pid->a) * pid->last_error;
     pid->filtered_error = error;
 
     pid->integral += pid->filtered_error;
     
-    // 积分限幅
+    // �?分限�?
     if (pid->integral > pid->integral_limit)
         pid->integral = pid->integral_limit;
     else if (pid->integral < -pid->integral_limit)
@@ -128,7 +129,7 @@ static float pid_calculate(pid_control* pid, float expect, float actual) {
     /* PID计算 */
     float output = pid->kp * pid->filtered_error + pid->ki * pid->integral + pid->kd * (pid->filtered_error - pid->last_error);
 
-    /* 误差更新 */
+    /* �?�?更新 */
     pid->last_error = pid->filtered_error;
     
     // 输出限幅
@@ -141,26 +142,26 @@ static float pid_calculate(pid_control* pid, float expect, float actual) {
 }
 
 /**
- * @brief 方向环PID控制器
- * @param target_position: 目标位置（轨迹中心为0）
- * @return 方向调整值，用于左右轮速度差
+ * @brief 方向环PID控制�?
+ * @param target_position: �?标位�?（轨迹中心为0�?
+ * @return 方向调整值，用于左右�?速度�?
  */
 int direction_control_pid(int target_position) {
-    /* 获取传感器状态 */
+    /* 获取传感器状�? */
     get_track_status();
 
     // 计算当前位置偏差
     uint8_t tracks = (track1 << 5) | (track2 << 4) | (track3 << 3) | (track4 << 2) | (track5 << 1) | track6;
     
-    // 终点检测
+    // 终点检�?
     if (tracks == 63) {
-        return 9999; // 特殊返回值表示终点
+        return 9999; // 特殊返回值表示终�?
     }
 
     OLED_ShowBinNum(3, 8, tracks, 6);
 
     int current_position = 0;    
-    // 根据传感器加权计算位置偏差
+    // 根据传感器加权�?�算位置偏差
     current_position = -5 * track1 - 3 * track2 - 1 * track3 + 1 * track4 + 3 * track5 + 5 * track6;
 
     //OLED_ShowSignedNum(4, 6, current_position, 4);
@@ -173,19 +174,19 @@ int direction_control_pid(int target_position) {
 
 
 /**
- * @brief 单轮速度环 PID
- * @param pid          PID控制器
- * @param ff           前馈控制器
- * @param target_speed 目标速度
- * @param actual_speed 实际速度（编码器）
+ * @brief 单轮速度�? PID
+ * @param pid          PID控制�?
+ * @param ff           前�?�控制器
+ * @param target_speed �?标速度
+ * @param actual_speed 实际速度（编码器�?
  * @return PWM 输出
  */
 int speed_control_single(pid_control *pid,int target_speed,int actual_speed)
 {
-    /* 前馈 */
+    /* 前�?? */
     //float pwm_ff = motor_speed_ff(ff, (float)target_speed);
 
-    /* PID 修正 */
+    /* PID �?�? */
     float pwm_pid = pid_calculate(pid,(float)target_speed,(float)actual_speed);
 
     //float pwm = pwm_ff + pwm_pid;
