@@ -5,8 +5,8 @@
 
 
 
-/* 六路循迹 */
-extern int track1, track2, track3, track4, track5, track6;
+/* 八路循迹 */
+extern int track1, track2, track3, track4, track5, track6, track7, track8;
 extern int left_speed, right_speed,target_speed;
 extern int left_encoder_speed;
 extern int right_encoder_speed;

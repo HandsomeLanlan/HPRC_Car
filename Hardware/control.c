@@ -14,17 +14,21 @@ int target_position = 0;
 int left_encoder_speed;
 int right_encoder_speed;
 
-int track1, track2, track3, track4, track5, track6;	//红外传感器(从左往右)
+int track1, track2, track3, track4, track5, track6, track7, track8;	//红外传感器(从左往右)
 int base_speed,right_speed,left_speed,direction_adjust;
 
 /* 红外循迹从左往右 */
 void get_track_status(void) {
-	track1 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12);
-	track2 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11);
-	track3 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8);
-	track4 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15);
-	track5 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_14);
-	track6 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_13);
+	track1 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3);
+	track2 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15);
+	track3 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12);
+	track4 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11);
+	track5 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8);
+	track6 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15);
+    // 7和8交换一下
+	track7 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_13);
+	track8 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_14);
+    
 }
 
 /* PWM通道初始化 */
@@ -44,13 +48,13 @@ void SetSpeed_Left(int speed) {
 	
 	if (speed > 0) {
 		speed = min_left_speed + speed * (7200 - min_left_speed) / 7200;	//小于3500不转
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, speed); 	//PA6
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);		//PA7
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0); 		//PA6
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, speed);	//PA7
 	} else {
 		speed = -speed;
 		speed = min_left_speed + speed * (7200 - min_left_speed) / 7200;	//小于3500不转
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0); 		//PA6
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, speed);	//PA7
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, speed); 	//PA6
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);		//PA7
 	}
 }
 
@@ -90,50 +94,17 @@ int obstacle_avoidance(void) {
     }
 
     get_track_status();
-    uint8_t tracks = (track1 << 5) | (track2 << 4) | (track3 << 3) | (track4 << 2) | (track5 << 1) | track6;
+    uint8_t tracks = (track1 << 7) | (track2 << 6) | (track3 << 5) | (track4 << 4) | (track5 << 3) | (track6 << 2) | (track7 << 1) | track8;
+
     /* 检测到黑线，继续循迹 */
     if (tracks) {
         flag = 0;
         return 0;
     }
+
     return 0;
 }
 
-/* 整体的逻辑代码 */
-#if 0
-void run(void) {
-    uint8_t tracks = (track1 << 5) | (track2 << 4) | (track3 << 3) | 
-                          (track4 << 2) | (track5 << 1) | track6;
-    
-    /* [6个传感器的状态]{左电机速度的增量,右电机速度的增量} */
-    static const int speed_adjust[64][2] = {
-        // 只列出常见的几种情况，其余可根据实际需求补充
-        [0]  = {0, 0},      // 111111
-        [7]  = {0, 0},      // 000111 - 直行
-        [14] = {-500, 500}, // 001110 - 微微右偏，需要向左调整
-        [28] = {500, -500}, // 011100 - 微微左偏，需要向右调整
-        [24] = {1000, -1000}, // 011000 - 左偏较多，需要右转
-        [63] = {0, 0}       // 111111 - 全部在线上(十字路口或终点)
-    };
-    
-    // 基础速度
-    int base_speed = 5000;
-    
-    // 根据传感器状态获取速度调整值
-    int left_speed = base_speed + speed_adjust[tracks][0];
-    int right_speed = base_speed + speed_adjust[tracks][1];
-    
-    if (tracks == 63) {  // 111111
-        left_speed = 0;
-        right_speed = 0;
-    }
-    
-    // 设置左右轮速度
-    SetSpeed_Left(left_speed);
-    SetSpeed_Right(right_speed);
-}
-	
-#elif 1
 /**
  * @brief   运行代码
  */
@@ -144,13 +115,16 @@ void run(void) {
     //     return;
     
     // 调用速度环PID控制器
-    speed_control_pid(target_speed,&left_speed,&right_speed);
+    // speed_control_pid(target_speed,&left_speed,&right_speed);
     
     // 调用方向环PID控制器
     direction_adjust = direction_control_pid(target_position);
     
+    // 调用速度环PID控制器
+    //speed_control_pid(direction_adjust,&left_speed,&right_speed);
+
     //OLED_ShowSignedNum(4, 1, base_speed, 4);
-    //OLED_ShowSignedNum(4, 7, direction_adjust, 4);
+    OLED_ShowSignedNum(3, 1, direction_adjust, 4);
 
     // 检查是否到达终点
     // if (direction_adjust == 9999) {
@@ -160,9 +134,11 @@ void run(void) {
     // }
     
     // 计算左右轮速度
-    direction_adjust = 0; //先调速度环，忽略方向环
-    left_speed = left_speed - direction_adjust;
-    right_speed = right_speed + direction_adjust;
+    // left_speed = left_speed - direction_adjust;
+    // right_speed = right_speed + direction_adjust;
+
+    left_speed = 4000 - direction_adjust;
+    right_speed = 4000 + direction_adjust;
     
     // 限制速度范围
     if (left_speed > 7200) left_speed = 7200;
@@ -177,4 +153,3 @@ void run(void) {
     OLED_ShowSignedNum(4, 1, left_speed, 4);
     OLED_ShowSignedNum(4, 7, right_speed, 4);
 }
-#endif

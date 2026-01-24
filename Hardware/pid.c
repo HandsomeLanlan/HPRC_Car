@@ -19,14 +19,14 @@ typedef struct {
 
 // 方向环PID控制器
 static pid_control direction_pid = {
-    .kp = 1.0f,
-    .ki = 0.05f,
-    .kd = 0.2f,
+    .kp = 600.0f,
+    .ki = 0.0f,
+    .kd = 0.0f,
     .integral = 0.0f,
-    .integral_limit = 1800.0f,
+    .integral_limit = 1500.0f,
     .last_error = 0.0f,
-    .output_limit = 3000.0f,
-    .a = 0.3f,
+    .output_limit = 6000.0f,
+    .a = 0.6f,
     .filtered_error = 0.0f
 };
 
@@ -113,7 +113,8 @@ static float pid_calculate(pid_control* pid, float expect, float actual) {
     float error = expect - actual;
 
     /* 一阶滤波 */
-    pid->filtered_error = pid->a * error + (1 - pid->a) * pid->filtered_error;
+    // pid->filtered_error = pid->a * error + (1 - pid->a) * pid->filtered_error;
+    pid->filtered_error = error;
 
     pid->integral += pid->filtered_error;
     
@@ -144,25 +145,38 @@ static float pid_calculate(pid_control* pid, float expect, float actual) {
  * @return 方向调整值，用于左右轮速度差
  */
 int direction_control_pid(int target_position) {
+    static int last_position = 0;
+
     /* 获取传感器状态 */
     get_track_status();
 
     // 计算当前位置偏差
-    uint8_t tracks = (track1 << 5) | (track2 << 4) | (track3 << 3) | (track4 << 2) | (track5 << 1) | track6;
+    uint8_t tracks = (track1 << 7) | (track2 << 6) | (track3 << 5) | (track4 << 4) | (track5 << 3) | (track6 << 2) | (track7 << 1) | track8;
     
     // 终点检测
-    if (tracks == 63) {
-        return 9999; // 特殊返回值表示终点
-    }
+    // if (tracks == 63) {
+    //     return 9999; // 特殊返回值表示终点
+    // }
 
-    OLED_ShowBinNum(3, 8, tracks, 6);
+    OLED_ShowBinNum(1, 1, tracks, 8);
 
     int current_position = 0;
     
     // 根据传感器加权计算位置偏差
-    current_position = -5 * track1 - 3 * track2 - 1 * track3 + 1 * track4 + 3 * track5 + 5 * track6;
+    if (track4 == 1 && track5 == 1 && track6 == 1 && track7 == 1) {
+        current_position =100;
+    } else {
+        current_position = - 7 * track1 - 4 * track2 - 3 * track3 - 1 * track4 + 1 * track5 + 3 * track6 + 4 * track7 + 7 * track8;
+    }
 
-    //OLED_ShowSignedNum(4, 6, current_position, 4);
+
+    if (tracks == 0) {
+        current_position = last_position;
+    } else {
+        last_position = current_position;
+    }
+
+    OLED_ShowSignedNum(2, 1, current_position, 4);
     
     // PID计算
     float direction_output = pid_calculate(&direction_pid, (float)target_position, (float)current_position);

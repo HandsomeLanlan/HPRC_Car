@@ -27,7 +27,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "HAL_OLED.h"
-#include "HAL_USART.h"
 #include "HRSR04.h"
 #include "control.h"
 #include "badc.h"
@@ -125,8 +124,8 @@ int main(void)
   // OLED_ShowString(1,9,"R:");
   // OLED_ShowString(2,1,"Distance:");
   // OLED_ShowString(3,1,"Tracks:");
-   //SetSpeed_Left(0);
-   //SetSpeed_Right();
+  // SetSpeed_Left(0);
+  // SetSpeed_Right();
   
   // int left_speed  = 0;
   // int right_speed = 0;
